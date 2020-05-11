@@ -5,6 +5,8 @@ using APICore.Data.UoW;
 using APICore.Services;
 using APICore.Services.Impls;
 using AutoMapper;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -36,6 +38,7 @@ namespace APICore.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            FirebaseApp.Create();
 
             services.AddMvc(config =>
             {

@@ -6,12 +6,14 @@ using APICore.Services.Exceptions;
 using DeviceDetectorNET;
 using DeviceDetectorNET.Cache;
 using DeviceDetectorNET.Parser;
+using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.WindowsAzure.Storage.Blob;
+using PasswordGenerator;
 using rlcx.suid;
 using System;
 using System.Collections.Generic;
@@ -26,6 +28,11 @@ using Wangkanai.Detection;
 
 namespace APICore.Services.Impls
 {
+    class Tokens
+    {
+        public string Token { get; set; }
+        public string RefreshToken { get; set; }
+    }
     public class AccountService : IAccountService
     {
         private readonly IConfiguration _configuration;
@@ -66,49 +73,69 @@ namespace APICore.Services.Impls
                 throw new AccountInactiveForbiddenException(_localizer);
             }
 
+            Tokens tokens = await SetTokenAsync(user);
+
+            return (user, tokens.Token, tokens.RefreshToken);
+        }
+
+        private async Task<Tokens> SetTokenAsync(User user)
+        {
             var dd = GetDeviceDetectorConfigured();
 
             var clientInfo = dd.GetClient();
             var osrInfo = dd.GetOs();
-            var device1 = dd.GetDeviceName();
+            //var device1 = dd.GetDeviceName();
             var brand = dd.GetBrandName();
             var model = dd.GetModel();
 
             var claims = GetClaims(user);
-            var token = GetToken(claims);
-            var refreshToken = GetRefreshToken();
-            var t = new UserToken();
-            t.AccessToken = token;
-            t.AccessTokenExpiresDateTime = DateTime.UtcNow.AddHours(int.Parse(_configuration.GetSection("BearerTokens")["AccessTokenExpirationHours"]));
-            t.RefreshToken = refreshToken;
-            t.RefreshTokenExpiresDateTime = DateTime.UtcNow.AddHours(int.Parse(_configuration.GetSection("BearerTokens")["RefreshTokenExpirationHours"]));
-            t.UserId = user.Id;
+            string token = GetToken(claims);
+            string refreshToken = GetRefreshToken();
+            UserToken t = new UserToken
+            {
+                AccessToken = token,
+                AccessTokenExpiresDateTime = DateTime.UtcNow.AddHours(int.Parse(_configuration.GetSection("BearerTokens")["AccessTokenExpirationHours"])),
+                RefreshToken = refreshToken,
+                RefreshTokenExpiresDateTime = DateTime.UtcNow.AddHours(int.Parse(_configuration.GetSection("BearerTokens")["RefreshTokenExpirationHours"])),
+                UserId = user.Id,
 
-            t.DeviceModel = model;
-            t.DeviceBrand = brand;
+                DeviceModel = model,
+                DeviceBrand = brand,
 
-            t.OS = osrInfo.Match?.Name;
-            t.OSPlatform = osrInfo.Match?.Platform;
-            t.OSVersion = osrInfo.Match?.Version;
+                OS = osrInfo.Match?.Name,
+                OSPlatform = osrInfo.Match?.Platform,
+                OSVersion = osrInfo.Match?.Version,
 
-            t.ClientName = clientInfo.Match?.Name;
-            t.ClientType = clientInfo.Match?.Type;
-            t.ClientVersion = clientInfo.Match?.Version;
-
+                ClientName = clientInfo.Match?.Name,
+                ClientType = clientInfo.Match?.Type,
+                ClientVersion = clientInfo.Match?.Version
+            };
             await _uow.UserTokenRepository.AddAsync(t);
             await _uow.CommitAsync();
+            return new Tokens { Token = token, RefreshToken = refreshToken };
+        }
 
-            return (user, token, refreshToken);
+        public async Task<(User user, string accessToken, string refreshToken)> LoginSocialAsync(LoginSocialRequest loginSocialRequest)
+        {
+            FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(loginSocialRequest.Token);
+            string uid = decodedToken.Uid;
+            UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(uid);
+            var pwd = new Password();
+            string password = pwd.Next();
+            User user = await SignUpAsync(new SignUpRequest{ FullName = userRecord.DisplayName, Email= userRecord.Email, Password=password});
+
+            Tokens tokens = await SetTokenAsync(user);
+
+            return (user, tokens.Token, tokens.RefreshToken);
+
         }
 
         private string GetRefreshToken()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
 
         private string GetToken(IEnumerable<Claim> claims)
@@ -138,7 +165,7 @@ namespace APICore.Services.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task SignUpAsync(SignUpRequest suRequest)
+        public async Task<User> SignUpAsync(SignUpRequest suRequest)
         {
             var emailExists = await _uow.UserRepository.FindAllAsync(u => u.Email == suRequest.Email);
             if (emailExists.Count > 0)
@@ -154,10 +181,10 @@ namespace APICore.Services.Impls
                 throw new PasswordRequirementsBadRequestException(_localizer);
             }
 
-            if (suRequest.Password != suRequest.ConfirmationPassword)
-            {
-                throw new PasswordsDoesntMatchBadRequestException(_localizer);
-            }
+            //if (suRequest.Password != suRequest.ConfirmationPassword)
+            //{
+            //    throw new PasswordsDoesntMatchBadRequestException(_localizer);
+            //}
 
             var passwordHash = GetSha256Hash(suRequest.Password);
             var user = new User
@@ -177,6 +204,8 @@ namespace APICore.Services.Impls
             await _uow.UserRepository.AddAsync(user);
 
             await _uow.CommitAsync();
+
+            return user;
         }
 
         private bool CheckStringWithoutSpecialChars(string word)

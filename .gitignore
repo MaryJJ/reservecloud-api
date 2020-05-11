@@ -345,3 +345,4 @@ healthchecksdb
 /AlboteAPI/AlboteAPI/appsettings.json
 /AlboteAPI/Albote.Core/appsettings.json
 /AlboteAPI/Albote.Core/Albote.Core.xml
+/firebase-config.json

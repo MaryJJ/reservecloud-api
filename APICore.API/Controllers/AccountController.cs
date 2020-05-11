@@ -74,6 +74,27 @@ namespace APICore.API.Controllers
         }
 
         /// <summary>
+        /// Login a user.
+        /// </summary>
+        /// <param name="loginSocialRequest">
+        /// Login request object. Include email used as username and password.
+        /// </param>
+        [AllowAnonymous]
+        [HttpPost("login-social")]
+        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> LoginSocial([FromBody]  LoginSocialRequest loginSocialRequest)
+        {
+            var result = await _accountService.LoginSocialAsync(loginSocialRequest);
+            HttpContext.Response.Headers["Authorization"] = "Bearer " + result.accessToken;
+            HttpContext.Response.Headers["RefreshToken"] = result.refreshToken;
+            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "Authorization, RefreshToken";
+            var user = _mapper.Map<UserResponse>(result.user);
+            return Ok(new ApiOkResponse(user));
+        }
+
+        /// <summary>
         /// Logout a user. Requires authentication.
         /// </summary>
         [Authorize]
