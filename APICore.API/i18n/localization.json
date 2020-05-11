@@ -1,0 +1,128 @@
+{ //BadRequests
+  "400": {
+    "Values": {
+      "en-US": "Request with malformed syntax.",
+      "es-ES": "Petición mal formada."
+    }
+  },
+  "400001": {
+    "Values": {
+      "en-US": "The email is already in use.",
+      "es-ES": "El email ya está siendo usado."
+    }
+  },
+  "400002": {
+    "Values": {
+      "en-US": "The password must have at least 6 chars, including 1 uppercase letter and 1 special character.",
+      "es-ES": "La contraseña requiere 6 caracters, incluyendo al menos 1 letra en mayúsculas y 1 caracter especial."
+    }
+  },
+  "400003": {
+    "Values": {
+      "en-US": "The passwords must match.",
+      "es-ES": "Las contraseñas deben coincidir."
+    }
+  },
+  "400004": {
+    "Values": {
+      "en-US": "The old password is incorrect.",
+      "es-ES": "La contraseña anterior es incorrecta."
+    }
+  },
+  "400005": {
+    "Values": {
+      "en-US": "The file is null or empty.",
+      "es-ES": "El archivo es nulo o está vacío."
+    }
+  },
+  "400006": {
+    "Values": {
+      "en-US": "The file size is invalid",
+      "es-ES": "El tamaño del archivo no es válido"
+    }
+  },
+  "400007": {
+    "Values": {
+      "en-US": "The type file is invalid",
+      "es-ES": "El tipo del archivo no es válido"
+    }
+  },
+    "400008": {
+      "Values": {
+        "en-US": "This email could not be sent",
+        "es-ES": "Este email no ha podido ser enviado"
+      }
+    },
+    //Unauthorized
+    "401": {
+      "Values": {
+        "en-US": "Unauthorized access. Requires user authentication.",
+        "es-ES": "Acceso no autorizado. Requiere autenticación."
+      }
+    },
+    "401001": {
+      "Values": {
+        "en-US": "You don't have permissions to access the resource.",
+        "es-ES": "Usted no tiene permisos para acceder al recurso."
+      }
+    },
+    //Forbidden
+    "403": {
+      "Values": {
+        "en-US": "Forbidden request.",
+        "es-ES": "Petición prohibida."
+      }
+    },
+    "403001": {
+      "Values": {
+        "en-US": "Your access is blocked because your account is inactive.",
+        "es-ES": "Su acceso ha sido bloqueado porque su cuenta no ha sido activada."
+      }
+    },
+    "403002": {
+      "Values": {
+        "en-US": "You cannot disable your account.",
+        "es-ES": "No puede deshabilitar su cuenta."
+      }
+    },
+    //NotFound
+    "404": {
+      "Values": {
+        "en-US": "Resource not found.",
+        "es-ES": "Recurso no encontrado."
+      }
+    },
+    "404001": {
+      "Values": {
+        "en-US": "User not found.",
+        "es-ES": "Usuario no encontrado."
+      }
+    },
+    "404002": {
+      "Values": {
+        "en-US": "Setting not found.",
+        "es-ES": "Configuración no encontrada."
+      }
+    },
+    //RequestTimeout
+    "408": {
+      "Values": {
+        "en-US": "Request timeout.",
+        "es-ES": "Tiempo de espera agotado."
+      }
+    },
+    //UnsupportedMediaType
+    "415": {
+      "Values": {
+        "en-US": "Unsupported media type.",
+        "es-ES": "Tipo no soportado."
+      }
+    },
+    //InternalServerError
+    "500": {
+      "Values": {
+        "en-US": "Internal server error.",
+        "es-ES": "Error interno del servidor."
+      }
+    }
+  }
