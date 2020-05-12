@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 WORKDIR /src
 COPY *.sln .
 COPY APICore.API/*.csproj APICore.API/
+COPY APICore.API/firebase-config.json APICore.API/
 COPY APICore.Common/*.csproj APICore.Common/
 COPY APICore.Data/*.csproj APICore.Data/
 COPY APICore.Services/*.csproj APICore.Services/
