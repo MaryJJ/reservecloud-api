@@ -122,7 +122,7 @@ namespace APICore.Services.Impls
             UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(uid);
             var pwd = new Password();
             string password = pwd.Next();
-            User user = await SignUpAsync(new SignUpRequest{ FullName = userRecord.DisplayName, Email= userRecord.Email, Password=password});
+            User user = await SignUpAsync(new SignUpRequest{ FullName = userRecord.DisplayName, Email= userRecord.Email, Password=password, Social=true});
 
             Tokens tokens = await SetTokenAsync(user);
 
@@ -167,11 +167,17 @@ namespace APICore.Services.Impls
 
         public async Task<User> SignUpAsync(SignUpRequest suRequest)
         {
-            var emailExists = await _uow.UserRepository.FindAllAsync(u => u.Email == suRequest.Email);
-            if (emailExists.Count > 0)
+            var existUser = await _uow.UserRepository.FindBy(u => u.Email == suRequest.Email).FirstOrDefaultAsync(); ;
+            if (existUser != null)
             {
-                throw new EmailInUseBadRequestException(_localizer);
-            }
+                if (suRequest.Social)
+                {
+                    return existUser;
+                } else
+                {
+                    throw new EmailInUseBadRequestException(_localizer);
+                }
+            } 
 
             if (string.IsNullOrWhiteSpace(suRequest.Password) ||
                 suRequest.Password.Length < 6
@@ -201,11 +207,11 @@ namespace APICore.Services.Impls
                 Status = StatusEnum.ACTIVE //TODO: the validation is missing now. Fix this once we have the validation process in place.
             };
 
-            await _uow.UserRepository.AddAsync(user);
+            await _uow.UserRepository.AddAsync(existUser);
 
             await _uow.CommitAsync();
 
-            return user;
+            return existUser;
         }
 
         private bool CheckStringWithoutSpecialChars(string word)

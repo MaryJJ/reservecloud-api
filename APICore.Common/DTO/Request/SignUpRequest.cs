@@ -24,5 +24,6 @@ namespace APICore.Common.DTO.Request
         public string Phone { get; set; }
 
         public int Gender { get; set; }
+        public bool Social { get; set; }
     }
 }
