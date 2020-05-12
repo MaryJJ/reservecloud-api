@@ -38,7 +38,10 @@ namespace APICore.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            FirebaseApp.Create();
+            FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.FromFile("firebase-config.json"),
+            });
 
             services.AddMvc(config =>
             {
